@@ -753,14 +753,14 @@ async function summon(){
 function openOdds(){
   const list = pool(type), tot = list.reduce((a,r)=>a+r.w,0);
   $('#oddsTitle').textContent = `${TYPES[type].label} 확률`;
-  const order = ['light','dark','dragon','none'];
+  const weights = [...new Set(list.map(r=>r.w))].sort((a,b)=>a-b);
   let html = '';
-  for (const c of order){
-    const g = list.filter(r=>r.cat===c); if (!g.length) continue;
-    const gp = g.reduce((a,r)=>a+r.w,0)/tot*100;
-    html += `<div class="group" style="--rgb:${CAT[c].rgb}"><h3><b></b>${CAT[c].label} <small>${g.length}종, 합계 ${gp.toFixed(2)}%</small></h3><div class="rows">` +
-      g.map(r=>`<div class="row"><img src="${IMG[r.name]}" alt=""><span>${r.name}</span><em>${(r.w/tot*100).toFixed(2)}%</em></div>`).join('') + `</div></div>`;
-  }
+  weights.forEach((w, idx) => {
+    const g = list.filter(r=>r.w===w).sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+    const ip = w/tot*100, gp = ip*g.length;
+    html += `<div class="group"><h3>${idx+1}등급 <small>${g.length}종, 개별 ${ip.toFixed(2)}%, 합계 ${gp.toFixed(2)}%</small></h3><div class="rows">` +
+      g.map(r=>`<div class="row"><img src="${IMG[r.name]}" alt=""><span>${r.name}</span><em>${ip.toFixed(2)}%</em></div>`).join('') + `</div></div>`;
+  });
   if (TYPES[type].slots > 1) html += `<p class="note">방어구는 한 번에 서로 다른 룬 5개가 나와요. 잠근 룬은 다시 소환할 때 나오지 않아요. 표의 확률은 한 칸 기준이에요.</p>`;
   $('#oddsBody').innerHTML = html;
   $('#odds').showModal();
